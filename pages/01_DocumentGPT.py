@@ -31,15 +31,6 @@ class ChatCallbackHandler(BaseCallbackHandler):
         self.message += token
         self.message_box.markdown(self.message)
 
-
-llm = ChatOpenAI(
-    temperature=0.1,
-    streaming=True,
-    callbacks=[
-        ChatCallbackHandler(),
-    ],
-)
-
 @st.cache_data(show_spinner="Embedding file...")
 def embed_file(file):
     file_content = file.read()
@@ -149,6 +140,14 @@ if file and st.session_state["OPENAI_API_KEY"]:
     message = st.chat_input("Ask anything about your file...")
     if message:
         send_message(message, "human")
+        llm = ChatOpenAI(
+            temperature=0.1,
+            streaming=True,
+            callbacks=[
+                ChatCallbackHandler(),
+            ],
+            openai_api_key=st.session_state["aOPENAI_API_KEY"],
+        )
         chain = (
             {
                 "context": retriever | RunnableLambda(format_docs),
