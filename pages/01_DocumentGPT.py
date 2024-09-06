@@ -15,6 +15,8 @@ st.set_page_config(
     page_icon="📃",
 )
 
+if "OPENAI_API_KEY" not in st.session_state:
+    st.session_state["OPENAI_API_KEY"] = None
 
 class ChatCallbackHandler(BaseCallbackHandler):
     message = ""
@@ -85,7 +87,7 @@ def format_docs(docs):
 def check_api_key(api_key):
     openai.api_key = api_key
     try:
-        openai.Model.list()  # This lists available models to verify the API key
+        openai.Model.list()
     except openai.error.AuthenticationError:
         return False
     else:
@@ -123,19 +125,24 @@ file = False
 
 with st.sidebar:
     st.link_button("Github Repo", "https://github.com/DiZZi-bot/fullstack-gpt")
-    OPENAI_API_KEY = st.text_input("Input your OpenAI api key", type="password")
-    if OPENAI_API_KEY:
-        if check_api_key(OPENAI_API_KEY):
-            st.text("Valid API KEY")
-            file = st.file_uploader(
-                "Upload a .txt .pdf or .docx file",
-                type=["pdf", "txt", "docx"],
-            )
-        else:
+    if not st.session_state["OPENAI_API_KEY"]:
+        OPENAI_API_KEY = st.text_input("Input your OpenAI api key", type="password")
+        if OPENAI_API_KEY and check_api_key(OPENAI_API_KEY):
+            st.session_state["OPENAI_API_KEY"] = OPENAI_API_KEY
+            st.success("alid API KEY.\n\nYou can upload your file.")
+        elif OPENAI_API_KEY:
             st.warning("Invalid API KEY.\n\nPlease Check your API KEY")
+    else:
+        st.success("Valid API KEY.\n\nYou can upload your file.")
+    
+    if st.session_state["OPENAI_API_KEY"]:
+        file = st.file_uploader(
+            "Upload a .txt .pdf or .docx file",
+            type=["pdf", "txt", "docx"],
+        )
 
 
-if file:
+if file and st.session_state["OPENAI_API_KEY"]:
     retriever = embed_file(file)
     send_message("I'm ready! Ask away!", "ai", save=False)
     paint_history()
@@ -152,7 +159,5 @@ if file:
         )
         with st.chat_message("ai"):
             response = chain.invoke(message)
-
-
 else:
     st.session_state["messages"] = []
