@@ -83,7 +83,6 @@ questions_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-questions_chain = questions_prompt | llm
 
 
 @st.cache_data(show_spinner="Loading file...")
@@ -105,6 +104,7 @@ def split_file(file):
 @st.cache_data(show_spinner="Making quiz...")
 def run_quiz_chain(_docs, topic, difficulty):
     input_data = {"context": format_docs(_docs), "difficulty": difficulty}
+    questions_chain = questions_prompt | llm
     response = questions_chain.invoke(input_data)
     response = response.additional_kwargs["function_call"]["arguments"]
     return json.loads(response)
