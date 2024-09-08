@@ -58,21 +58,6 @@ function = {
 }
 
 
-llm = ChatOpenAI(
-    temperature=0.1,
-    model="gpt-4o-mini-2024-07-18",
-    streaming=True,
-    callbacks=[StreamingStdOutCallbackHandler()],
-    openai_api_key=st.session_state["OPENAI_API_KEY"],
-).bind(
-    function_call={
-        "name": "create_quiz",
-    },
-    functions=[
-        function,
-    ],
-)
-
 
 st.title("QuizGPT")
 
