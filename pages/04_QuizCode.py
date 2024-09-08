@@ -61,21 +61,6 @@ function = {
 }
 
 
-llm = ChatOpenAI(
-    temperature=0.1,
-    model="gpt-4o-mini-2024-07-18",
-    streaming=True,
-    callbacks=[StreamingStdOutCallbackHandler()],
-    openai_api_key=st.session_state["OPENAI_API_KEY"],
-).bind(
-    function_call={
-        "name": "create_quiz",
-    },
-    functions=[
-        function,
-    ],
-)
-
 
 st.title("QuizGPT")
 
@@ -101,7 +86,6 @@ questions_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-questions_chain = questions_prompt | llm
 
 
 @st.cache_data(show_spinner="Loading file...")
@@ -123,6 +107,7 @@ def split_file(file):
 @st.cache_data(show_spinner="Making quiz...")
 def run_quiz_chain(_docs, topic, difficulty):
     input_data = {"context": format_docs(_docs), "difficulty": difficulty}
+    questions_chain = questions_prompt | llm
     response = questions_chain.invoke(input_data)
     response = response.additional_kwargs["function_call"]["arguments"]
     return json.loads(response)
@@ -238,7 +223,7 @@ else:
             st.error(f"You got {correct_answers}/{total_questions} correct. Try again!")
     
     if button and correct_answers != total_questions:
-        retry_button = st.button("Retry Quiz")  # 폼 바깥에서 버튼을 사용
+        retry_button = st.button("Retry Quiz")
         if retry_button:
             st.experimental_rerun() 
 '''
